@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "nghc-github-workflow": {
+      "source": "zerya-dev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/github/nghc-github-workflow/SKILL.md",
+      "computedHash": "de0c1f974420ad83a4aa79a93d96aadd847da8b021b100979ad7cb26f7aaf1a6"
+    }
+  }
+}

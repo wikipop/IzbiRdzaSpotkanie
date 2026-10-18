@@ -1,0 +1,4 @@
+interface:
+  display_name: "NGHC GitHub Workflow"
+  short_description: "Keep NGHC issues, branches, commits, and PRs consistent"
+  default_prompt: "Use $nghc-github-workflow to package this repository change according to NGHC conventions."

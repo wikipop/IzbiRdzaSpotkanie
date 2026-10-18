@@ -1,0 +1,21 @@
+[package]
+name = "proto"
+description = "HTTP contract: request/response DTOs, OpenAPI schemas and the common error format."
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+axum.workspace = true
+domain.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+utoipa.workspace = true
+
+[dev-dependencies]
+http-body-util.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true

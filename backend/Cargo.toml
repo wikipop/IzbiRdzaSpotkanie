@@ -1,0 +1,53 @@
+[workspace]
+resolver = "3"
+members = ["crates/domain", "crates/proto", "crates/auth", "crates/server", "crates/nano", "crates/gateway", "crates/monolith", "tests", "xtask"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[workspace.dependencies]
+# wewnętrzne crate'y
+domain = { path = "crates/domain" }
+auth = { path = "crates/auth" }
+proto = { path = "crates/proto" }
+server = { path = "crates/server" }
+gateway = { path = "crates/gateway" }
+nano = { path = "crates/nano" }
+monolith = { path = "crates/monolith" }
+
+# zewnętrzne
+anyhow = "1"
+argon2 = "0.5"
+axum = { version = "0.8", features = ["macros"] }
+base64 = "0.22"
+ed25519-dalek = { version = "2", features = ["pkcs8", "pem"] }
+getrandom = "0.3"
+http-body-util = "0.1"
+jsonwebtoken = { version = "10", default-features = false, features = ["rust_crypto", "use_pem"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"
+thiserror = "2"
+tokio = { version = "1", features = ["rt", "macros", "net", "signal"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+utoipa = { version = "5", features = ["axum_extras"] }
+utoipa-scalar = { version = "0.3", features = ["axum"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
