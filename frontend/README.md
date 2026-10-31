@@ -72,6 +72,15 @@ Production mode uses `https://api-meet.izbi.beer` for the gateway and
 NUXT_PUBLIC_API_MODE=production
 ```
 
+Staging or self-hosted deployments move slot hosts with a template; `{slot}` becomes the slot ID
+(for example `pn-09`). The gateway override alone never changes production slot hosts:
+
+```dotenv
+NUXT_PUBLIC_API_MODE=production
+NUXT_PUBLIC_GATEWAY_BASE=https://api-staging.example
+NUXT_PUBLIC_SLOT_BASE_TEMPLATE=https://{slot}-staging.example
+```
+
 Never put JWTs or other secrets in `.env`; the browser receives an event-scoped JWT from join.
 
 ## Production deployment
