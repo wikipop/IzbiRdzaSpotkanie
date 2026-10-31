@@ -3,11 +3,11 @@
 Aplikacja pomaga grupie znaleźć wspólny termin spotkania. Działa w stylu When2meet.
 To zadanie rekrutacyjne BIT Web w ścieżce programistycznej.
 
-| Część | Gdzie |
-|---|---|
-| Frontend w Nuxt 4 | [`frontend/`](frontend/README.md) |
-| Backend: gateway i 168 usług nano w Ruście | [`backend/`](backend/README.md) |
-| Decyzje architektoniczne | [`backend/docs/adr`](backend/docs/adr/README.md) |
+| Część | Gdzie | Odpowiedzialny |
+|---|---|---|
+| Frontend w Nuxt 4 | [`frontend/`](frontend/README.md) | [wojpo](https://github.com/wojpo) |
+| Backend: gateway i 168 usług nano w Ruście | [`backend/`](backend/README.md) | [wikipop](https://github.com/wikipop) |
+| Decyzje architektoniczne | [`backend/docs/adr`](backend/docs/adr/README.md) | [wikipop](https://github.com/wikipop) |
 
 ## Szybki start
 
