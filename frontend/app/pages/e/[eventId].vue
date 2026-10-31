@@ -27,6 +27,8 @@ const joinDialog = ref<HTMLDialogElement | null>(null)
 const scheduleFocusTarget = ref<HTMLElement | null>(null)
 const participantFilterIds = ref<string[]>([])
 const comparisonRequested = ref(false)
+// Browsing lets a joined participant click cells to see who answered without editing.
+const browseMode = ref(false)
 const garnekDismissed = ref(false)
 const automaticGarnekCheckArmed = ref(false)
 const automaticGarnekDelayElapsed = ref(false)
@@ -503,6 +505,32 @@ else failInitialEventLoad()
             <p class="mt-2 text-xs text-ink-soft">Kliknij jedną osobę, aby zobaczyć tylko jej plan. Kolejne kliknięcia dodają osoby do porównania.</p>
           </fieldset>
 
+          <div v-if="canEditSelectedView" class="mt-4 inline-grid grid-cols-2 gap-1 rounded-2xl bg-flake/60 p-1" role="group" aria-label="Tryb siatki">
+            <button
+              type="button"
+              class="min-h-11 rounded-xl px-4 py-2 text-sm font-bold"
+              :class="!browseMode ? 'bg-white text-rust-dark shadow-sm' : 'text-ink-soft'"
+              :aria-pressed="!browseMode"
+              @click="browseMode = false"
+            >
+              Zaznaczam swoje godziny
+            </button>
+            <button
+              type="button"
+              class="min-h-11 rounded-xl px-4 py-2 text-sm font-bold"
+              :class="browseMode ? 'bg-white text-rust-dark shadow-sm' : 'text-ink-soft'"
+              :aria-pressed="browseMode"
+              @click="browseMode = true"
+            >
+              Przeglądam odpowiedzi
+            </button>
+          </div>
+          <p v-if="canEditSelectedView" class="mt-2 text-xs text-ink-soft">
+            {{ browseMode
+              ? 'Kliknij godzinę, żeby zobaczyć, kto jest zapisany. Twoje wybory się nie zmienią.'
+              : 'Kliknięcie zmienia Twój wybór. Żeby tylko sprawdzić, kto jest zapisany, najedź na godzinę albo przełącz na przeglądanie.' }}
+          </p>
+
           <ScheduleAvailabilityGrid
             class="mt-4"
             :slots="event.slots"
@@ -511,7 +539,7 @@ else failInitialEventLoad()
             :participants="selectedParticipants"
             :participant-count="selectedParticipants.length"
             :busy="schedule.isLoading"
-            :editable="canEditSelectedView"
+            :editable="canEditSelectedView && !browseMode"
             :current-user-id="session?.userId"
             :comparison-user-id="selectedParticipants.length === 1 ? selectedParticipants[0]?.userId : undefined"
             :write-states="schedule.writeStates"

@@ -145,6 +145,11 @@ function inspectCell(slot: SlotId): void {
   inspectedSlot.value = slot
 }
 
+// Hovering with a mouse previews who answered without touching anyone's availability.
+function hoverCell(event: PointerEvent, slot: SlotId): void {
+  if (event.pointerType === 'mouse' && !paintingActive.value) inspectedSlot.value = slot
+}
+
 function handleCellClick(event: MouseEvent, slot: SlotId): void {
   inspectCell(slot)
   if (suppressPaintClick) {
@@ -316,6 +321,7 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
                   @focus="inspectCell(slot)"
                   @keydown="handleCellKeydown($event, slot)"
                   @pointerdown="beginPaint($event, slot)"
+                  @pointerenter="hoverCell($event, slot)"
                   @click="handleCellClick($event, slot)"
                 >
                   <span class="absolute top-1 left-1 size-2 rounded-full bg-emerald-500 shadow-[0_0_0_2px_white]" aria-hidden="true" />
@@ -342,6 +348,7 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
                   :tabindex="cellTabIndex(slot)"
                   @focus="inspectCell(slot)"
                   @keydown="handleCellKeydown($event, slot)"
+                  @pointerenter="hoverCell($event, slot)"
                   @click="inspectCell(slot)"
                 >
                   <span class="absolute top-1 left-1 size-2 rounded-full bg-emerald-500 shadow-[0_0_0_2px_white]" aria-hidden="true" />
