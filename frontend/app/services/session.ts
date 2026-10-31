@@ -2,7 +2,7 @@ export interface EventSession {
   userId: string
   nick: string
   token: string
-  dismissedGarnekSignatures?: string[]
+  garnekDismissed?: boolean
 }
 
 export type TokenExpiryStatus =
@@ -17,9 +17,7 @@ function isEventSession(value: unknown): value is EventSession {
   return typeof record.userId === 'string'
     && typeof record.nick === 'string'
     && typeof record.token === 'string'
-    && (record.dismissedGarnekSignatures === undefined
-      || (Array.isArray(record.dismissedGarnekSignatures)
-        && record.dismissedGarnekSignatures.every(item => typeof item === 'string')))
+    && (record.garnekDismissed === undefined || typeof record.garnekDismissed === 'boolean')
 }
 
 export function readEventSession(eventId: string): EventSession | null {

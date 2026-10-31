@@ -2,7 +2,7 @@
 import { forgetEventSession, readEventSession, tokenExpiryStatus, writeEventSession, type EventSession } from '~/services/session'
 import { validateJoin } from '~/domain/validation'
 import { evaluateSelectedOverlap, filterAvailability, type ParticipantSummary } from '~/domain/availability'
-import { rememberGarnekDismissal, shouldShowGarnek } from '~/domain/garnek'
+import { shouldShowGarnek } from '~/domain/garnek'
 import type { ApiFailure, ApiResult } from '~/services/api/result'
 import type { AvailabilityState, EventResponse, SlotId } from '~/types/api/contracts'
 
@@ -27,7 +27,7 @@ const joinDialog = ref<HTMLDialogElement | null>(null)
 const scheduleFocusTarget = ref<HTMLElement | null>(null)
 const participantFilterIds = ref<string[]>([])
 const comparisonRequested = ref(false)
-const dismissedGarnekSignatures = ref<string[]>([])
+const garnekDismissed = ref(false)
 const automaticGarnekCheckArmed = ref(false)
 const automaticGarnekDelayElapsed = ref(false)
 const nowSeconds = ref(Math.floor(Date.now() / 1000))
@@ -75,7 +75,7 @@ const overlapEvaluation = computed(() => evaluateSelectedOverlap({
 const showGarnek = computed(() => shouldShowGarnek({
   comparisonRequested: comparisonRequested.value,
   evaluation: overlapEvaluation.value,
-  dismissedSignatures: dismissedGarnekSignatures.value,
+  dismissed: garnekDismissed.value,
 }))
 const canRequestComparison = computed(() => Boolean(
   session.value
@@ -193,13 +193,11 @@ async function join(): Promise<void> {
     userId: result.data.user_id,
     nick: trimmedNick,
     token: result.data.token,
-    ...(sameIdentity && dismissedGarnekSignatures.value.length
-      ? { dismissedGarnekSignatures: dismissedGarnekSignatures.value }
-      : {}),
+    ...(sameIdentity && garnekDismissed.value ? { garnekDismissed: true } : {}),
   }
   session.value = nextSession
   participantFilterIds.value = [nextSession.userId]
-  dismissedGarnekSignatures.value = nextSession.dismissedGarnekSignatures ?? []
+  garnekDismissed.value = nextSession.garnekDismissed ?? false
   reauthUserId.value = null
   if (!writeEventSession(requestedEventId, nextSession)) {
     sessionNotice.value = 'Pamięć sesji jest zablokowana. Pozostaniesz zalogowany do odświeżenia strony.'
@@ -242,7 +240,7 @@ function forgetSession(): void {
   schedule.discardWrites()
   session.value = null
   reauthUserId.value = null
-  dismissedGarnekSignatures.value = []
+  garnekDismissed.value = false
   sessionNotice.value = ''
   forgetEventSession(eventId.value)
   nick.value = ''
@@ -271,7 +269,7 @@ function editSlot(slot: SlotId, desired: AvailabilityState | null): void {
 }
 
 function armAutomaticGarnekCheck(): void {
-  if (automaticGarnekCheckArmed.value || dismissedGarnekSignatures.value.length > 0) return
+  if (automaticGarnekCheckArmed.value || garnekDismissed.value) return
   automaticGarnekCheckArmed.value = true
   automaticGarnekTimer = setTimeout(() => {
     automaticGarnekDelayElapsed.value = true
@@ -289,12 +287,9 @@ function dismissGarnek(): void {
   if (overlapEvaluation.value.status === 'no-overlap') {
     if (automaticGarnekTimer) clearTimeout(automaticGarnekTimer)
     automaticGarnekCheckArmed.value = false
-    dismissedGarnekSignatures.value = rememberGarnekDismissal(
-      dismissedGarnekSignatures.value,
-      overlapEvaluation.value.signature,
-    )
+    garnekDismissed.value = true
     if (session.value) {
-      session.value = { ...session.value, dismissedGarnekSignatures: dismissedGarnekSignatures.value }
+      session.value = { ...session.value, garnekDismissed: true }
       writeEventSession(eventId.value, session.value)
     }
   }
@@ -315,7 +310,7 @@ onMounted(() => {
   if (session.value) {
     nick.value = session.value.nick
     participantFilterIds.value = [session.value.userId]
-    dismissedGarnekSignatures.value = session.value.dismissedGarnekSignatures ?? []
+    garnekDismissed.value = session.value.garnekDismissed ?? false
   }
   expiryTimer = setInterval(() => { nowSeconds.value = Math.floor(Date.now() / 1000) }, 60_000)
 })
@@ -336,7 +331,7 @@ watch(eventId, async () => {
   automaticGarnekCheckArmed.value = false
   automaticGarnekDelayElapsed.value = false
   if (automaticGarnekTimer) clearTimeout(automaticGarnekTimer)
-  dismissedGarnekSignatures.value = session.value?.dismissedGarnekSignatures ?? []
+  garnekDismissed.value = session.value?.garnekDismissed ?? false
   joinDialog.value?.close()
   await loadEvent()
 })
@@ -355,7 +350,7 @@ watch(canRequestComparison, (ready) => {
     ready
     && automaticGarnekCheckArmed.value
     && automaticGarnekDelayElapsed.value
-    && dismissedGarnekSignatures.value.length === 0
+    && !garnekDismissed.value
   ) comparisonRequested.value = true
 })
 
