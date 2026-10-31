@@ -3,6 +3,19 @@
 Aplikacja pomaga grupie znaleźć wspólny termin spotkania. Działa w stylu When2meet.
 To zadanie rekrutacyjne BIT Web w ścieżce programistycznej.
 
+## Przetestuj na żywo
+
+| Co | Adres |
+|---|---|
+| Aplikacja | <https://meet.izbi.beer> |
+| Dokumentacja API (OpenAPI) | <https://api-meet.izbi.beer/docs> |
+| Stan gatewaya | <https://api-meet.izbi.beer/health> |
+| Stan przykładowej godziny (poniedziałek 9:00) | <https://pn-09-meet.izbi.beer/health> |
+
+Każda godzina tygodnia to osobna usługa pod adresem `https://{slot}-meet.izbi.beer`, na przykład
+`sr-18` dla środy 18:00. Żeby zobaczyć, jak frontend rozmawia ze 168 usługami, otwórz w
+przeglądarce narzędzia deweloperskie (F12) na karcie Network i wejdź w dowolne spotkanie.
+
 | Część | Gdzie | Odpowiedzialny |
 |---|---|---|
 | Frontend w Nuxt 4 | [`frontend/`](frontend/README.md) | [wojpo](https://github.com/wojpo) |

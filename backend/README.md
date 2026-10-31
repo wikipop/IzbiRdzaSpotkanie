@@ -3,6 +3,10 @@
 Backend składa się z gatewaya i 168 usług nano w Ruście. Każda usługa nano
 obsługuje jedną godzinę tygodnia. Uzasadnienie jest w [`docs/adr`](docs/adr/README.md).
 
+Działa na żywo: gateway pod <https://api-meet.izbi.beer> (dokumentacja w
+<https://api-meet.izbi.beer/docs>), a godziny pod `https://{slot}-meet.izbi.beer`, na przykład
+<https://pn-09-meet.izbi.beer/health>.
+
 ```
 frontend (meet.izbi.beer)           scatter-gather po stronie przeglądarki
    │

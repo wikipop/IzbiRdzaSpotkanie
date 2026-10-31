@@ -3,6 +3,8 @@
 Nuxt 4 SSR client for event creation, joining and LettuceMeet-style availability comparison across
 168 independent hourly services. It uses strict TypeScript and Tailwind CSS 4.
 
+Live at <https://meet.izbi.beer>, against the production API at <https://api-meet.izbi.beer/docs>.
+
 ## Requirements and setup
 
 - Node.js 22 or newer;
