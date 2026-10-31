@@ -12,6 +12,7 @@ export function useApi() {
   const environment: ApiEnvironment = {
     mode,
     gatewayBase: config.public.gatewayBase || undefined,
+    slotBaseTemplate: config.public.slotBaseTemplate || undefined,
   }
 
   return {

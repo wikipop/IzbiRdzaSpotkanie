@@ -6,7 +6,10 @@ export type ApiMode = 'development' | 'production'
 export interface ApiEnvironment {
   mode: ApiMode
   gatewayBase?: string
+  slotBaseTemplate?: string
 }
+
+const defaultSlotBaseTemplate = 'https://{slot}-meet.izbi.beer'
 
 const defaultGatewayBase: Record<ApiMode, string> = {
   development: 'http://localhost:8080',
@@ -28,7 +31,7 @@ export function slotBaseUrl(environment: ApiEnvironment, slot: SlotId): string {
     return `${gatewayBaseUrl(environment)}/slots/${slot}`
   }
 
-  return `https://${slot}-meet.izbi.beer`
+  return withoutTrailingSlash((environment.slotBaseTemplate || defaultSlotBaseTemplate).replaceAll('{slot}', slot))
 }
 
 export function eventPath(eventId: string): string {
