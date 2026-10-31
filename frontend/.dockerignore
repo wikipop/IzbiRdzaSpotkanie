@@ -1,0 +1,12 @@
+node_modules
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+test-results
+playwright-report
+.env
+.env.*
+Dockerfile
