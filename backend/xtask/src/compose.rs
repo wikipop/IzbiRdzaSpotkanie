@@ -140,6 +140,8 @@ x-nano-env: &nano-env
 
 x-nano: &nano
   image: ${{NANO_IMAGE:?}}
+  # Images are tagged `latest`; without this a redeploy keeps the copy already on the host.
+  pull_policy: always
   restart: unless-stopped
   networks:
     - dokploy-network
@@ -153,6 +155,7 @@ x-nano: &nano
 services:
   frontend:
     image: ${{FRONTEND_IMAGE:?}}
+    pull_policy: always
     restart: unless-stopped
     environment:
       NUXT_PUBLIC_API_MODE: production
@@ -169,6 +172,7 @@ services:
 
   gateway:
     image: ${{GATEWAY_IMAGE:?}}
+    pull_policy: always
     restart: unless-stopped
     environment:
       JWT_KEY_ID: ${{JWT_KEY_ID:-k1}}
