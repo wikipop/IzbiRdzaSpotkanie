@@ -49,6 +49,9 @@ const currentTabStop = computed(() => (
     ? activeSlot.value
     : firstNavigableSlot.value
 ))
+const showDetails = computed(() => Boolean(
+  inspectedSlot.value && props.reads[inspectedSlot.value]?.status === 'success',
+))
 const inspectedSummary = computed(() => (
   inspectedSlot.value ? summaryBySlot.value.get(inspectedSlot.value) : undefined
 ))
@@ -392,12 +395,15 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
       </table>
     </div>
 
-    <aside v-if="inspectedSlot && reads[inspectedSlot]?.status === 'success'" class="sticky top-2 z-20 order-first rounded-2xl border border-rust/15 bg-paper p-4 text-left shadow-[0_0.75rem_2rem_rgb(29_36_34/10%)] lg:order-last lg:top-4" aria-live="polite">
+    <!-- Phones get a dismissible bottom sheet so the panel never covers the grid while scrolling;
+         wide screens keep it pinned beside the grid. -->
+    <aside v-if="showDetails && inspectedSlot" class="fixed inset-x-3 bottom-3 z-30 max-h-[45vh] overflow-y-auto rounded-2xl border border-rust/15 bg-paper p-4 text-left shadow-[0_-0.5rem_2.5rem_rgb(29_36_34/22%)] lg:sticky lg:inset-x-auto lg:top-4 lg:bottom-auto lg:z-20 lg:order-last lg:max-h-none lg:shadow-[0_0.75rem_2rem_rgb(29_36_34/10%)]" aria-live="polite">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <h3 class="font-display text-xl font-bold text-rust-dark">{{ formatSlot(inspectedSlot) }}</h3>
         <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700"><span class="size-2 rounded-full bg-emerald-500" /> serwis online</span>
+        <button type="button" class="grid size-11 place-items-center rounded-full border border-rust/20 bg-white text-xl lg:hidden" aria-label="Zamknij szczegóły godziny" @click="inspectedSlot = null">×</button>
       </div>
-      <div v-if="participants.length" class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+      <div v-if="participants.length" class="mt-3 grid grid-cols-3 gap-3 text-sm">
         <div>
           <p class="font-bold text-emerald-800">Tak · {{ yesEntries.length }}</p>
           <p class="mt-1 text-ink-soft">{{ yesEntries.map(entry => entry.nick).join(', ') || '—' }}</p>
@@ -412,9 +418,10 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
         </div>
       </div>
       <p v-else class="mt-2 text-sm text-ink-soft">Nikt jeszcze nie zaznaczył żadnej dostępności.</p>
-      <p class="mt-3 text-xs text-ink-soft">Lista obejmuje osoby widoczne w co najmniej jednej odpowiedzi; API nie ujawnia uczestników bez żadnego wpisu.</p>
+      <p class="mt-3 hidden text-xs text-ink-soft lg:block">Lista obejmuje osoby widoczne w co najmniej jednej odpowiedzi; API nie ujawnia uczestników bez żadnego wpisu.</p>
     </aside>
-    <aside v-else class="sticky top-2 z-20 order-first rounded-2xl border border-dashed border-rust/25 bg-white/95 p-4 text-sm text-ink-soft lg:order-last lg:top-4">
+    <!-- Stays in place on phones while the sheet is open, so the grid below does not jump. -->
+    <aside class="order-first rounded-2xl border border-dashed border-rust/25 bg-white/95 p-4 text-sm text-ink-soft lg:sticky lg:top-4 lg:order-last" :class="{ 'lg:hidden': showDetails }">
       Wybierz godzinę, aby zobaczyć odpowiedzi wybranych osób.
     </aside>
   </div>
