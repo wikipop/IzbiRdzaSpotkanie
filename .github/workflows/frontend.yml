@@ -68,6 +68,10 @@ jobs:
     needs: image
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    # No checkout here, so the workflow's default working directory does not exist.
+    defaults:
+      run:
+        working-directory: .
     permissions:
       contents: read
       packages: write
