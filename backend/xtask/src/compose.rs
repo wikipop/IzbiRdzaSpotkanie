@@ -1,6 +1,7 @@
 //! `cargo xtask gen-compose`: writes `docker-compose.yml` (local) and
 //! `docker-compose.dokploy.yml` (production) for the gateway and all 168
-//! nano services. The files are committed but never edited by hand.
+//! nano services, plus the frontend in production. The files are committed
+//! but never edited by hand.
 
 use std::fmt::Write as _;
 use std::path::Path;
@@ -117,7 +118,7 @@ services:
 }
 
 /// Production stack for Dokploy: prebuilt images, every service behind
-/// Traefik on its own first-level subdomain of `domain` (`api-meet`,
+/// Traefik on its own first-level subdomain of `domain` (`meet`, `api-meet`,
 /// `{slot}-meet`), all of them on `dokploy-network`.
 fn dokploy_compose(domain: &str) -> String {
     let mut out = String::from(HEADER);
@@ -125,9 +126,9 @@ fn dokploy_compose(domain: &str) -> String {
         out,
         "#
 # Production stack for Dokploy behind its Traefik.
-# Required variables (Dokploy → Environment): GATEWAY_IMAGE, NANO_IMAGE,
-# JWT_PRIVATE_KEY, JWT_PUBLIC_KEYS. Optional: JWT_KEY_ID, ALLOWED_ORIGIN,
-# TOKEN_TTL_DAYS, TRAEFIK_ENTRYPOINT.
+# Required variables (Dokploy → Environment): FRONTEND_IMAGE, GATEWAY_IMAGE,
+# NANO_IMAGE, JWT_PRIVATE_KEY, JWT_PUBLIC_KEYS. Optional: JWT_KEY_ID,
+# ALLOWED_ORIGIN, TOKEN_TTL_DAYS, TRAEFIK_ENTRYPOINT.
 #
 # Traffic is proxied by Cloudflare. Routers only enable TLS; Traefik serves
 # the Cloudflare Origin CA certificate for *.{domain} added once in Dokploy
@@ -150,6 +151,22 @@ x-nano: &nano
     retries: 3
 
 services:
+  frontend:
+    image: ${{FRONTEND_IMAGE:?}}
+    restart: unless-stopped
+    environment:
+      NUXT_PUBLIC_API_MODE: production
+      NUXT_PUBLIC_GATEWAY_BASE: https://api-meet.{domain}
+      NUXT_PUBLIC_SLOT_BASE_TEMPLATE: https://{{slot}}-meet.{domain}
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.meet-web.rule=Host(`meet.{domain}`)
+      - traefik.http.routers.meet-web.entrypoints=${{TRAEFIK_ENTRYPOINT:-websecure}}
+      - traefik.http.routers.meet-web.tls=true
+      - traefik.http.services.meet-web.loadbalancer.server.port=3000
+
   gateway:
     image: ${{GATEWAY_IMAGE:?}}
     restart: unless-stopped

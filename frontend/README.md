@@ -85,7 +85,15 @@ Never put JWTs or other secrets in `.env`; the browser receives an event-scoped 
 
 ## Production deployment
 
-Build and run the Nuxt/Nitro Node server:
+Production runs on Dokploy as the `frontend` service of `backend/docker-compose.dokploy.yml`, from
+the `ghcr.io/wikipop/meet-frontend` image that CI publishes on every push to `master`. The steps are
+in [`backend/README.md`](../backend/README.md#dokploy). To build the image locally:
+
+```bash
+docker build -t meet-frontend:local frontend
+```
+
+Without Docker, build and run the Nuxt/Nitro Node server:
 
 ```bash
 npm ci

@@ -56,7 +56,7 @@ Pliki compose są generowane. Zmiany wprowadzaj w [`xtask/src/compose.rs`](xtask
 
 ### Dokploy
 
-1. CI publikuje obrazy `ghcr.io/wikipop/meet-gateway` i `ghcr.io/wikipop/meet-nano` przy każdym pushu na `master`.
+1. CI publikuje obrazy `ghcr.io/wikipop/meet-gateway`, `ghcr.io/wikipop/meet-nano` i `ghcr.io/wikipop/meet-frontend` przy każdym pushu na `master`.
 2. W Cloudflare rekord `*.izbi.beer` wskazuje na serwer Dokploy i jest proxowany. Tryb SSL to Full (strict).
 3. Wygeneruj w Cloudflare certyfikat Origin CA dla `izbi.beer` i `*.izbi.beer`. Znajdziesz to w SSL/TLS, w zakładce Origin Server.
    Dodaj certyfikat i klucz w Dokploy, w zakładce Certificates. Robisz to raz. Uzasadnienie jest w [ADR 0006](docs/adr/0006-cloudflare-origin-certificate.md).
@@ -64,13 +64,17 @@ Pliki compose są generowane. Zmiany wprowadzaj w [`xtask/src/compose.rs`](xtask
 
    | Zmienna | Wartość |
    |---|---|
+   | `FRONTEND_IMAGE` | `ghcr.io/wikipop/meet-frontend:latest` |
    | `GATEWAY_IMAGE` | `ghcr.io/wikipop/meet-gateway:latest` |
    | `NANO_IMAGE` | `ghcr.io/wikipop/meet-nano:latest` |
    | `JWT_KEY_ID`, `JWT_PRIVATE_KEY`, `JWT_PUBLIC_KEYS` | z `cargo xtask gen-keys` |
    | `TRAEFIK_ENTRYPOINT` | `websecure` |
    | `ALLOWED_ORIGIN` | `https://meet.izbi.beer` |
 
-Domen nie dodajemy w zakładce Domains. Routing definiują etykiety w pliku compose.
+Domen nie dodajemy w zakładce Domains. Routing definiują etykiety w pliku compose:
+frontend jest pod `meet.izbi.beer`, gateway pod `api-meet.izbi.beer`, a sloty pod
+`{slot}-meet.izbi.beer`. Obrazy z ghcr.io muszą być publiczne albo Dokploy musi mieć
+do nich dostęp przez Registry.
 
 ## API
 

@@ -2,9 +2,9 @@
 # Change backend/xtask/src/compose.rs and regenerate instead.
 #
 # Production stack for Dokploy behind its Traefik.
-# Required variables (Dokploy → Environment): GATEWAY_IMAGE, NANO_IMAGE,
-# JWT_PRIVATE_KEY, JWT_PUBLIC_KEYS. Optional: JWT_KEY_ID, ALLOWED_ORIGIN,
-# TOKEN_TTL_DAYS, TRAEFIK_ENTRYPOINT.
+# Required variables (Dokploy → Environment): FRONTEND_IMAGE, GATEWAY_IMAGE,
+# NANO_IMAGE, JWT_PRIVATE_KEY, JWT_PUBLIC_KEYS. Optional: JWT_KEY_ID,
+# ALLOWED_ORIGIN, TOKEN_TTL_DAYS, TRAEFIK_ENTRYPOINT.
 #
 # Traffic is proxied by Cloudflare. Routers only enable TLS; Traefik serves
 # the Cloudflare Origin CA certificate for *.izbi.beer added once in Dokploy
@@ -27,6 +27,22 @@ x-nano: &nano
     retries: 3
 
 services:
+  frontend:
+    image: ${FRONTEND_IMAGE:?}
+    restart: unless-stopped
+    environment:
+      NUXT_PUBLIC_API_MODE: production
+      NUXT_PUBLIC_GATEWAY_BASE: https://api-meet.izbi.beer
+      NUXT_PUBLIC_SLOT_BASE_TEMPLATE: https://{slot}-meet.izbi.beer
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.meet-web.rule=Host(`meet.izbi.beer`)
+      - traefik.http.routers.meet-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.meet-web.tls=true
+      - traefik.http.services.meet-web.loadbalancer.server.port=3000
+
   gateway:
     image: ${GATEWAY_IMAGE:?}
     restart: unless-stopped
