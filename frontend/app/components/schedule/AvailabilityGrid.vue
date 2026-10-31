@@ -156,12 +156,10 @@ function handleCellClick(event: MouseEvent, slot: SlotId): void {
 
 function beginPaint(event: PointerEvent, slot: SlotId): void {
   if (!props.editable || event.button !== 0 || event.pointerType === 'touch') return
+  // A failed cell is retried by its click handler; painting never starts from it.
+  if (currentWrite(slot)?.status === 'failed') return
   inspectCell(slot)
   suppressPaintClick = true
-  if (currentWrite(slot)?.status === 'failed') {
-    emit('retryWrite', slot)
-    return
-  }
 
   event.preventDefault()
   paintingIntent.value = nextState(slot)

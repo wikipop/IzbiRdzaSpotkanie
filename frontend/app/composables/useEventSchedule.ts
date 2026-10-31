@@ -21,7 +21,6 @@ export interface WriteIdentity {
 }
 
 const defaultConcurrency = 8
-const slotTimeoutMs = 10_000
 
 export function useEventSchedule(
   eventId: Ref<string>,
@@ -39,6 +38,8 @@ export function useEventSchedule(
     entry?: AvailabilityResponse['entries'][number]
   }>()
   const reauthRequired = ref(false)
+  // The newest token handed in by the page; writes started with an older one retry with it.
+  let latestIdentity: WriteIdentity | null = null
   let generation = 0
   let writeGeneration = 0
   let mounted = false
@@ -83,8 +84,10 @@ export function useEventSchedule(
     return true
   }
 
-  async function processWrite(slot: SlotId, identity: WriteIdentity): Promise<void> {
+  async function processWrite(slot: SlotId, initialIdentity: WriteIdentity): Promise<void> {
+    latestIdentity = initialIdentity
     if (processingWrites.has(slot)) return
+    let identity = initialIdentity
     const processGeneration = writeGeneration
     processingWrites.set(slot, processGeneration)
 
@@ -105,6 +108,11 @@ export function useEventSchedule(
         if (!result.ok) {
           if (result.error.kind === 'api'
             && (result.error.code === 'invalid_token' || result.error.code === 'missing_token')) {
+            if (latestIdentity?.userId === identity.userId && latestIdentity.token !== identity.token) {
+              // The user rejoined while this request was in flight; retry with the fresh token.
+              identity = latestIdentity
+              continue
+            }
             reauthRequired.value = true
           }
           const latestWrite = writeStates.value[slot]
@@ -152,6 +160,7 @@ export function useEventSchedule(
   }
 
   function retryFailedWrites(identity: WriteIdentity): void {
+    latestIdentity = identity
     reauthRequired.value = false
     for (const slot of Object.keys(writeStates.value) as SlotId[]) {
       const write = writeStates.value[slot]
@@ -168,6 +177,7 @@ export function useEventSchedule(
     pendingReadReconciliations.clear()
     writeStates.value = {}
     reauthRequired.value = false
+    latestIdentity = null
   }
 
   async function loadTargets(targets: SlotId[], replaceAll: boolean): Promise<void> {
@@ -184,9 +194,7 @@ export function useEventSchedule(
       reads.value[slot] = { status: 'loading' }
       const controller = new AbortController()
       activeControllers.add(controller)
-      const timeout = setTimeout(() => controller.abort(), slotTimeoutMs)
       const result = await slotClient.getAvailability(slot, requestedEventId, controller.signal)
-      clearTimeout(timeout)
       activeControllers.delete(controller)
       if (requestGeneration !== generation || requestedEventId !== eventId.value) return
 
