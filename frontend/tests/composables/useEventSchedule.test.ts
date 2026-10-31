@@ -100,6 +100,24 @@ describe('useEventSchedule writes', () => {
     expect(schedule.writeStates.value['pn-09']).toBeUndefined()
   })
 
+  it('retries a write rejected for a token replaced while it was in flight', async () => {
+    const stale = deferred<ApiResult<AvailabilityEntry>>()
+    const setMyAvailability = vi.fn()
+      .mockReturnValueOnce(stale.promise)
+      .mockResolvedValueOnce({ ok: true, data: entry('yes') })
+    const { schedule } = setupSchedule(setMyAvailability)
+    await schedule.refreshAll()
+
+    schedule.setDesiredAvailability('pn-09', { userId: 'u_1', token: 'old' }, 'yes')
+    schedule.retryFailedWrites({ userId: 'u_1', token: 'new' })
+    stale.resolve({ ok: false, error: { kind: 'api', status: 401, code: 'invalid_token', message: 'expired' } })
+    await flushPromises()
+
+    expect(setMyAvailability.mock.calls[1]?.[2]).toBe('new')
+    expect(schedule.reauthRequired.value).toBe(false)
+    expect(schedule.writeStates.value['pn-09']).toBeUndefined()
+  })
+
   it('never retries another participant’s failed intent with a replacement identity', async () => {
     const setMyAvailability = vi.fn().mockResolvedValue({
       ok: false,
