@@ -15,9 +15,9 @@ export interface SlotSummary {
 
 export type AvailabilityLevel = 0 | 1 | 2 | 3 | 4
 
-export type OverlapEvaluation =
-  | { status: 'pending' | 'insufficient' | 'overlap' }
-  | { status: 'no-overlap'; signature: string }
+export interface OverlapEvaluation {
+  status: 'pending' | 'insufficient' | 'overlap' | 'no-overlap'
+}
 
 export function availabilityLevel(summary: SlotSummary | undefined, participantCount: number): AvailabilityLevel {
   if (!summary || participantCount <= 0) return 0
@@ -75,31 +75,23 @@ export function evaluateSelectedOverlap(options: {
 }): OverlapEvaluation {
   if (!options.allSlotsKnown || options.hasPendingWrites) return { status: 'pending' }
 
-  const participantIds = [...new Set(options.participantIds)].sort()
-  if (participantIds.length < 2 || !options.currentUserId || !participantIds.includes(options.currentUserId)) {
+  const participantIds = new Set(options.participantIds)
+  if (participantIds.size < 2 || !options.currentUserId || !participantIds.has(options.currentUserId)) {
     return { status: 'insufficient' }
   }
 
-  const hasAnyEntry = participantIds.every(userId => options.summaries.some(summary => (
-    summary.entries.some(entry => entry.user_id === userId)
-  )))
-  if (!hasAnyEntry) return { status: 'insufficient' }
-
-  const scored = options.summaries.map((summary) => {
-    const selectedEntries = summary.entries.filter(entry => participantIds.includes(entry.user_id))
-    return {
-      availableCount: new Set(selectedEntries.map(entry => entry.user_id)).size,
+  const withAnyEntry = new Set<string>()
+  let hasOverlap = false
+  for (const summary of options.summaries) {
+    const available = new Set<string>()
+    for (const entry of summary.entries) {
+      if (!participantIds.has(entry.user_id)) continue
+      available.add(entry.user_id)
+      withAnyEntry.add(entry.user_id)
     }
-  })
-  if (scored.some(slot => slot.availableCount === participantIds.length)) return { status: 'overlap' }
+    if (available.size === participantIds.size) hasOverlap = true
+  }
+  if (withAnyEntry.size < participantIds.size) return { status: 'insufficient' }
 
-  const signature = participantIds.map(userId => (
-    `${userId}:${options.summaries.flatMap(summary => (
-      summary.entries.find(entry => entry.user_id === userId)
-        ? [`${summary.slot}=${summary.entries.find(entry => entry.user_id === userId)?.state}`]
-        : []
-    )).join(',')}`
-  )).join('|')
-
-  return { status: 'no-overlap', signature }
+  return { status: hasOverlap ? 'overlap' : 'no-overlap' }
 }

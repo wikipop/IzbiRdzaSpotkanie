@@ -124,8 +124,7 @@ describe('selected participant overlap', () => {
       hasPendingWrites: false,
     })
 
-    expect(result.status).toBe('no-overlap')
-    if (result.status === 'no-overlap') expect(result.signature).toContain('u_1:pn-09=yes')
+    expect(result).toEqual({ status: 'no-overlap' })
   })
 
   it('does not claim no overlap with partial data, pending writes, or missing own entries', () => {

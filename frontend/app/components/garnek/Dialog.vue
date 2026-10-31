@@ -21,7 +21,7 @@ watch(() => props.visible, async (visible) => {
   await nextTick()
   if (visible && !dialog.value?.open) dialog.value?.showModal()
   else if (!visible && dialog.value?.open) dialog.value.close()
-}, { immediate: true })
+})
 
 function returnToGrid(): void {
   dialog.value?.close()

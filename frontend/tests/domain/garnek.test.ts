@@ -1,35 +1,30 @@
 import { describe, expect, it } from 'vitest'
-import { rememberGarnekDismissal, shouldShowGarnek } from '~/domain/garnek'
+import { shouldShowGarnek } from '~/domain/garnek'
 
 describe('Garnek dialogue frequency', () => {
-  it('keeps every dismissed result hidden when comparison changes A → B → A', () => {
-    let dismissed: string[] = []
-    dismissed = rememberGarnekDismissal(dismissed, 'result-a')
-    dismissed = rememberGarnekDismissal(dismissed, 'result-b')
-
-    expect(shouldShowGarnek({
-      comparisonRequested: true,
-      evaluation: { status: 'no-overlap', signature: 'result-a' },
-      dismissedSignatures: dismissed,
-    })).toBe(false)
-    expect(dismissed).toEqual(['result-a', 'result-b'])
-  })
-
-  it('requires an armed comparison and never reopens after any dismissal', () => {
+  it('requires an armed comparison and a missing overlap', () => {
     expect(shouldShowGarnek({
       comparisonRequested: false,
-      evaluation: { status: 'no-overlap', signature: 'new-result' },
-      dismissedSignatures: [],
+      evaluation: { status: 'no-overlap' },
+      dismissed: false,
     })).toBe(false)
     expect(shouldShowGarnek({
       comparisonRequested: true,
-      evaluation: { status: 'no-overlap', signature: 'new-result' },
-      dismissedSignatures: [],
-    })).toBe(true)
+      evaluation: { status: 'overlap' },
+      dismissed: false,
+    })).toBe(false)
     expect(shouldShowGarnek({
       comparisonRequested: true,
-      evaluation: { status: 'no-overlap', signature: 'different-result' },
-      dismissedSignatures: ['old-result'],
+      evaluation: { status: 'no-overlap' },
+      dismissed: false,
+    })).toBe(true)
+  })
+
+  it('never reopens after a dismissal', () => {
+    expect(shouldShowGarnek({
+      comparisonRequested: true,
+      evaluation: { status: 'no-overlap' },
+      dismissed: true,
     })).toBe(false)
   })
 })
