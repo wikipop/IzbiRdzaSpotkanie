@@ -389,7 +389,7 @@ else failInitialEventLoad()
       </NuxtLink>
 
       <section v-if="loadState === 'loading'" class="paper-card mt-8 p-8" aria-live="polite">
-        <p class="font-display text-2xl text-rust-dark">Otwieram notes spotkania…</p>
+        <p class="font-display text-2xl text-rust-dark"><span class="inline-block animate-bounce" aria-hidden="true">🦀</span> Otwieram notes spotkania…</p>
       </section>
 
       <section v-else-if="loadState === 'not-found'" class="paper-card mt-8 p-8 text-center">

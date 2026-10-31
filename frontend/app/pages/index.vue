@@ -61,13 +61,86 @@ function toggleSlot(slot: SlotId): void {
   errors.value.slots = undefined
 }
 
-function toggleWholeDay(day: Weekday): void {
-  const daySlots = Array.from({ length: 24 }, (_, hour) => slotId(day, hour))
-  const allSelected = daySlots.every(slot => selectedSlots.value.includes(slot))
-  selectedSlots.value = allSelected
-    ? selectedSlots.value.filter(slot => !daySlots.includes(slot))
-    : [...new Set([...selectedSlots.value, ...daySlots])]
+const hours = Array.from({ length: 24 }, (_, hour) => hour)
+const selectedSet = computed(() => new Set(selectedSlots.value))
+// A drag selects the rectangle between its first cell and the current one, so fast mouse
+// moves that skip cells still fill every hour in between.
+let paint: { target: boolean; anchor: SlotId; base: Set<SlotId> } | null = null
+let pointerPainted = false
+
+function hourLabel(hour: number): string {
+  return `${String(hour).padStart(2, '0')}:00`
+}
+
+function setSlots(slots: SlotId[], selected: boolean): void {
+  const next = new Set(selectedSlots.value)
+  for (const slot of slots) {
+    if (selected) next.add(slot)
+    else next.delete(slot)
+  }
+  selectedSlots.value = [...next]
   errors.value.slots = undefined
+}
+
+function daySlots(day: Weekday): SlotId[] {
+  return hours.map(hour => slotId(day, hour))
+}
+
+function hourSlots(hour: number): SlotId[] {
+  return weekdays.map(day => slotId(day, hour))
+}
+
+function allSelected(slots: SlotId[]): boolean {
+  return slots.every(slot => selectedSet.value.has(slot))
+}
+
+function toggleWholeHour(hour: number): void {
+  setSlots(hourSlots(hour), !allSelected(hourSlots(hour)))
+}
+
+// Mouse and pen paint by dragging; touch keeps native scrolling and toggles on tap.
+function beginSlotPaint(event: PointerEvent, slot: SlotId): void {
+  if (event.pointerType === 'touch' || event.button !== 0) return
+  event.preventDefault()
+  paint = { target: !selectedSet.value.has(slot), anchor: slot, base: new Set(selectedSlots.value) }
+  pointerPainted = true
+  explicitActiveSlot.value = slot
+  continueSlotPaint(slot)
+}
+
+function continueSlotPaint(slot: SlotId): void {
+  if (!paint) return
+  const [anchorDay, anchorHour] = [weekdays.indexOf(paint.anchor.slice(0, 2) as Weekday), Number(paint.anchor.slice(3))]
+  const [day, hour] = [weekdays.indexOf(slot.slice(0, 2) as Weekday), Number(slot.slice(3))]
+  const next = new Set(paint.base)
+  for (let d = Math.min(anchorDay, day); d <= Math.max(anchorDay, day); d++) {
+    for (let h = Math.min(anchorHour, hour); h <= Math.max(anchorHour, hour); h++) {
+      const cell = slotId(weekdays[d]!, h)
+      if (paint.target) next.add(cell)
+      else next.delete(cell)
+    }
+  }
+  selectedSlots.value = [...next]
+  errors.value.slots = undefined
+}
+
+function endSlotPaint(): void {
+  paint = null
+  // The click that follows pointerup has already been handled by the paint.
+  setTimeout(() => { pointerPainted = false }, 0)
+}
+
+function clickSlot(slot: SlotId): void {
+  explicitActiveSlot.value = slot
+  if (pointerPainted) return
+  toggleSlot(slot)
+}
+
+onMounted(() => window.addEventListener('pointerup', endSlotPaint))
+onBeforeUnmount(() => window.removeEventListener('pointerup', endSlotPaint))
+
+function toggleWholeDay(day: Weekday): void {
+  setSlots(daySlots(day), !allSelected(daySlots(day)))
 }
 
 function explicitTabIndex(slot: SlotId): 0 | -1 {
@@ -85,10 +158,10 @@ function handleExplicitSlotKeydown(event: KeyboardEvent, day: Weekday, hour: num
   let nextDay = dayIndex
   let nextHour = hour
 
-  if (event.key === 'ArrowLeft') nextHour = Math.max(0, hour - 1)
-  else if (event.key === 'ArrowRight') nextHour = Math.min(23, hour + 1)
-  else if (event.key === 'ArrowUp') nextDay = Math.max(0, dayIndex - 1)
-  else if (event.key === 'ArrowDown') nextDay = Math.min(weekdays.length - 1, dayIndex + 1)
+  if (event.key === 'ArrowLeft') nextDay = Math.max(0, dayIndex - 1)
+  else if (event.key === 'ArrowRight') nextDay = Math.min(weekdays.length - 1, dayIndex + 1)
+  else if (event.key === 'ArrowUp') nextHour = Math.max(0, hour - 1)
+  else if (event.key === 'ArrowDown') nextHour = Math.min(23, hour + 1)
   else if (event.key === 'Home') nextHour = 0
   else if (event.key === 'End') nextHour = 23
   else return
@@ -150,8 +223,8 @@ async function createEvent(): Promise<void> {
   <div class="min-h-screen px-4 py-8 sm:px-8 sm:py-14">
     <main id="main-content" class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
       <section aria-labelledby="page-title" class="min-w-0 py-2">
-        <p class="font-display text-lg font-extrabold text-rust-dark">
-          Izbi Rdza Meet
+        <p class="wordmark inline-flex items-center gap-2 font-display text-lg font-extrabold text-rust-dark">
+          <span class="wordmark-crab" aria-hidden="true">🦀</span> Izbi Rdza Meet
         </p>
         <h1 id="page-title" class="mt-10 max-w-xl font-display text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-ink sm:text-7xl">
           Kiedy się widzimy?
@@ -169,7 +242,9 @@ async function createEvent(): Promise<void> {
                 :key="hour"
                 class="hero-week-cell"
                 :class="level === 'shared' ? 'is-shared' : `is-${level}`"
-              />
+              >
+                <span v-if="level === 'shared'" class="hero-crab">🦀</span>
+              </span>
             </template>
           </div>
           <figcaption class="mt-4 text-sm leading-6 text-ink-soft">
@@ -256,35 +331,56 @@ async function createEvent(): Promise<void> {
 
           <fieldset v-else :aria-describedby="errors.slots ? 'event-slots-error event-slots-hint' : 'event-slots-hint'">
             <legend class="font-bold">Konkretne godziny</legend>
-            <p id="event-slots-hint" class="mt-1 text-sm text-ink-soft">Wybierz dowolne godziny. Nie muszą tworzyć ciągłego zakresu. Po siatce poruszaj się strzałkami, a Home i End przechodzą na początek lub koniec dnia.</p>
-            <div class="mt-3 max-h-[28rem] space-y-3 overflow-y-auto rounded-2xl border border-rust/15 bg-white/70 p-3">
-              <section v-for="day in weekdays" :key="day" :aria-labelledby="`explicit-${day}`">
-                <div class="flex items-center justify-between gap-3">
-                  <h3 :id="`explicit-${day}`" class="font-bold text-rust-dark">{{ weekdayLabels[day] }}</h3>
-                  <button type="button" class="min-h-11 px-2 text-xs font-bold text-rust-dark underline underline-offset-2" :aria-label="`${Array.from({ length: 24 }, (_, hour) => slotId(day, hour)).every(slot => selectedSlots.includes(slot)) ? 'Wyczyść' : 'Wybierz'} cały dzień: ${weekdayLabels[day]}`" @click="toggleWholeDay(day)">
-                    {{ Array.from({ length: 24 }, (_, hour) => slotId(day, hour)).every(slot => selectedSlots.includes(slot)) ? 'Wyczyść dzień' : 'Cały dzień' }}
-                  </button>
-                </div>
-                <div class="mt-1 grid grid-cols-4 gap-1.5 sm:grid-cols-8">
+            <p id="event-slots-hint" class="mt-1 text-sm text-ink-soft">
+              Kliknij godzinę albo przeciągnij po siatce. Nagłówek dnia lub godziny zaznacza cały rząd, a strzałki przesuwają między polami.
+            </p>
+            <div class="slot-picker-scroll mt-3">
+              <div class="slot-picker" role="group" aria-label="Godziny tygodnia">
+                <span class="slot-picker-corner" aria-hidden="true" />
+                <button
+                  v-for="day in weekdays"
+                  :key="day"
+                  type="button"
+                  class="slot-picker-head"
+                  :aria-label="`${allSelected(daySlots(day)) ? 'Wyczyść' : 'Wybierz'} cały dzień: ${weekdayLabels[day]}`"
+                  @click="toggleWholeDay(day)"
+                >
+                  {{ day.toUpperCase() }}
+                </button>
+                <template v-for="hour in hours" :key="hour">
                   <button
-                    v-for="hour in 24"
-                    :id="`slot-${day}-${String(hour - 1).padStart(2, '0')}`"
-                    :key="hour"
                     type="button"
-                    class="min-h-11 rounded-lg border px-1 text-xs font-bold"
-                    :class="selectedSlots.includes(slotId(day, hour - 1)) ? 'border-rust-dark bg-rust text-white' : 'border-rust/15 bg-white text-ink'"
-                    :aria-pressed="selectedSlots.includes(slotId(day, hour - 1))"
-                    :tabindex="explicitTabIndex(slotId(day, hour - 1))"
-                    @focus="explicitActiveSlot = slotId(day, hour - 1)"
-                    @keydown="handleExplicitSlotKeydown($event, day, hour - 1)"
-                    @click="toggleSlot(slotId(day, hour - 1))"
+                    class="slot-picker-hour"
+                    :aria-label="`${allSelected(hourSlots(hour)) ? 'Wyczyść' : 'Wybierz'} godzinę ${hourLabel(hour)} we wszystkie dni`"
+                    @click="toggleWholeHour(hour)"
                   >
-                    {{ String(hour - 1).padStart(2, '0') }}
+                    {{ String(hour).padStart(2, '0') }}
                   </button>
-                </div>
-              </section>
+                  <button
+                    v-for="day in weekdays"
+                    :id="`slot-${slotId(day, hour)}`"
+                    :key="day"
+                    type="button"
+                    class="slot-picker-cell"
+                    :class="{ 'is-selected': selectedSet.has(slotId(day, hour)) }"
+                    :aria-label="`${weekdayLabels[day]}, ${hourLabel(hour)}`"
+                    :aria-pressed="selectedSet.has(slotId(day, hour))"
+                    :tabindex="explicitTabIndex(slotId(day, hour))"
+                    @focus="explicitActiveSlot = slotId(day, hour)"
+                    @keydown="handleExplicitSlotKeydown($event, day, hour)"
+                    @pointerdown="beginSlotPaint($event, slotId(day, hour))"
+                    @pointerenter="continueSlotPaint(slotId(day, hour))"
+                    @click="clickSlot(slotId(day, hour))"
+                  />
+                </template>
+              </div>
             </div>
-            <p class="mt-2 text-sm text-ink-soft">Wybrano: <strong>{{ selectedSlots.length }}</strong></p>
+            <div class="mt-2 flex items-center justify-between gap-3 text-sm text-ink-soft">
+              <p>Wybrano: <strong>{{ selectedSlots.length }}</strong> godz.</p>
+              <button v-if="selectedSlots.length" type="button" class="min-h-11 px-2 font-bold text-rust-dark underline underline-offset-2" @click="selectedSlots = []">
+                Wyczyść wszystko
+              </button>
+            </div>
             <p v-if="errors.slots" id="event-slots-error" class="error-text mt-2 text-sm">{{ errors.slots }}</p>
           </fieldset>
 
@@ -302,6 +398,70 @@ async function createEvent(): Promise<void> {
 </template>
 
 <style scoped>
+.slot-picker-scroll {
+  max-height: 24rem;
+  overflow-y: auto;
+  border: 1px solid rgb(92 35 16 / 15%);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 70%);
+  padding: 0 0.5rem 0.5rem;
+}
+
+.slot-picker {
+  display: grid;
+  grid-template-columns: 2.25rem repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  user-select: none;
+}
+
+.slot-picker-corner,
+.slot-picker-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fbfcfb;
+  padding-top: 0.5rem;
+}
+
+.slot-picker-head {
+  min-height: 2.5rem;
+  border-radius: 0 0 0.4rem 0.4rem;
+  color: var(--color-rust-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.slot-picker-hour {
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.slot-picker-head:hover,
+.slot-picker-hour:hover {
+  color: var(--color-rust);
+}
+
+.slot-picker-cell {
+  min-height: 1.6rem;
+  border-radius: 0.3rem;
+  background: var(--color-steel);
+  transition: background 80ms ease;
+}
+
+.slot-picker-cell:hover {
+  background: var(--color-flake);
+}
+
+.slot-picker-cell.is-selected {
+  background: var(--color-rust);
+}
+
+.slot-picker-cell.is-selected:hover {
+  background: var(--color-rust-dark);
+}
+
 .hero-week {
   display: grid;
   grid-template-columns: 1.6rem repeat(24, minmax(0, 1fr));
@@ -325,6 +485,34 @@ async function createEvent(): Promise<void> {
 .hero-week-cell.is-2 { background: #d07a52; }
 .hero-week-cell.is-3 { background: var(--color-rust); }
 .hero-week-cell.is-4 { background: var(--color-rust-dark); }
+
+.hero-week-cell {
+  position: relative;
+}
+
+.hero-crab {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+  translate: -50% 0;
+  animation: hero-crab-hop 1.4s cubic-bezier(0.3, 0, 0.4, 1) infinite;
+}
+
+@keyframes hero-crab-hop {
+  0%, 40%, 100% { transform: translateY(0); }
+  65% { transform: translateY(-0.9rem) rotate(-12deg); }
+}
+
+.wordmark-crab {
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+
+.wordmark:hover .wordmark-crab {
+  transform: translateY(-0.35rem) rotate(-15deg);
+}
 
 .hero-week-cell.is-shared {
   background: var(--color-verdigris);

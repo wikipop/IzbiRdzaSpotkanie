@@ -95,9 +95,12 @@ describe('create event page', () => {
     expect(slotButtons.filter(button => button.attributes('tabindex') === '0')).toHaveLength(1)
     const first = wrapper.get('#slot-pn-00')
     first.element.focus()
-    await first.trigger('keydown', { key: 'ArrowRight' })
+    await first.trigger('keydown', { key: 'ArrowDown' })
 
     expect(document.activeElement).toBe(wrapper.get('#slot-pn-01').element)
     expect(wrapper.get('#slot-pn-01').attributes('tabindex')).toBe('0')
+
+    await wrapper.get('#slot-pn-01').trigger('keydown', { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(wrapper.get('#slot-wt-01').element)
   })
 })
