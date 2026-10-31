@@ -5,7 +5,7 @@ FROM rust:1-alpine AS builder
 RUN apk add --no-cache musl-dev
 WORKDIR /src
 COPY . .
-# Statically linked musl binary (x86_64-unknown-linux-musl on production hosts).
+# Statically linked musl binary for the build host (x86_64 or aarch64).
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/src/target \
     TARGET="$(uname -m)-unknown-linux-musl" \
