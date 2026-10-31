@@ -15,6 +15,7 @@ export default defineNuxtConfig({
       apiMode: process.env.NUXT_PUBLIC_API_MODE
         ?? (process.env.NODE_ENV === 'production' ? 'production' : 'development'),
       gatewayBase: process.env.NUXT_PUBLIC_GATEWAY_BASE ?? '',
+      slotBaseTemplate: process.env.NUXT_PUBLIC_SLOT_BASE_TEMPLATE ?? '',
     },
   },
   typescript: {

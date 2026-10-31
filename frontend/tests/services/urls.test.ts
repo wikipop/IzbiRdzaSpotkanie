@@ -20,6 +20,15 @@ describe('API URL builder', () => {
       .toBe('https://pn-00-meet.izbi.beer')
   })
 
+  it('uses a slot host template override in production', () => {
+    const environment = {
+      mode: 'production' as const,
+      gatewayBase: 'https://api-staging.test',
+      slotBaseTemplate: 'https://{slot}-staging.test/',
+    }
+    expect(slotBaseUrl(environment, 'wt-07')).toBe('https://wt-07-staging.test')
+  })
+
   it('rejects malformed slot identifiers and encodes event IDs', () => {
     expect(() => slotBaseUrl({ mode: 'development' }, 'pn-99')).toThrow('Invalid slot identifier')
     expect(eventPath('event/unsafe')).toBe('/events/event%2Funsafe')
