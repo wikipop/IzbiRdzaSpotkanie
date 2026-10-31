@@ -12,6 +12,7 @@ const { createEventMock, navigateToMock, useApiMock } = vi.hoisted(() => ({
 mockNuxtImport('useApi', () => useApiMock)
 mockNuxtImport('navigateTo', () => navigateToMock)
 mockNuxtImport('useHead', () => vi.fn())
+mockNuxtImport('useRuntimeConfig', () => () => ({ public: { apiMode: 'development', gatewayBase: '' } }))
 
 const defaultDays = ['pn', 'wt', 'sr', 'cz', 'pt'] as const
 

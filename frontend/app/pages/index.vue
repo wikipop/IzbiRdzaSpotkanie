@@ -2,6 +2,7 @@
 import { validateCreateEvent, validateCreateEventSlots, type ValidationErrors } from '~/domain/validation'
 import { slotId, slotsForRange, weekdayLabels } from '~/domain/slots'
 import type { ApiFailure } from '~/services/api/result'
+import { gatewayBaseUrl, type ApiMode } from '~/services/api/urls'
 import { weekdays, type SlotId, type Weekday } from '~/types/api/contracts'
 
 useHead({
@@ -10,6 +11,12 @@ useHead({
 })
 
 const { gateway } = useApi()
+const config = useRuntimeConfig()
+const repositoryUrl = 'https://github.com/wikipop/IzbiRdzaSpotkanie'
+const apiDocsUrl = `${gatewayBaseUrl({
+  mode: config.public.apiMode as ApiMode,
+  gatewayBase: config.public.gatewayBase || undefined,
+})}/docs`
 const name = ref('')
 const selectedDays = ref<Weekday[]>(['pn', 'wt', 'sr', 'cz', 'pt'])
 const from = ref(9)
@@ -224,7 +231,7 @@ async function createEvent(): Promise<void> {
     <main id="main-content" class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
       <section aria-labelledby="page-title" class="min-w-0 py-2">
         <p class="wordmark inline-flex items-center gap-2 font-display text-lg font-extrabold text-rust-dark">
-          <span class="wordmark-crab" aria-hidden="true">🦀</span> Izbi Rdza Meet
+          <img src="/assets/ferris/ferris.svg" alt="" class="wordmark-crab h-6 w-auto"> Izbi Rdza Meet
         </p>
         <h1 id="page-title" class="mt-10 max-w-xl font-display text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-ink sm:text-7xl">
           Kiedy się widzimy?
@@ -243,7 +250,7 @@ async function createEvent(): Promise<void> {
                 class="hero-week-cell"
                 :class="level === 'shared' ? 'is-shared' : `is-${level}`"
               >
-                <span v-if="level === 'shared'" class="hero-crab">🦀</span>
+                <img v-if="level === 'shared'" src="/assets/ferris/ferris.svg" alt="" class="hero-crab">
               </span>
             </template>
           </div>
@@ -394,6 +401,21 @@ async function createEvent(): Promise<void> {
         </form>
       </section>
     </main>
+
+    <footer class="mx-auto mt-16 w-full max-w-6xl border-t border-rust-dark/15 pt-6 text-sm text-ink-soft">
+      <nav aria-label="Projekt">
+        <ul class="flex flex-wrap gap-x-6 gap-y-2 font-semibold">
+          <li><a class="footer-link" :href="repositoryUrl">Kod na GitHubie</a></li>
+          <li>Frontend: <a class="footer-link" href="https://github.com/wojpo">wojpo</a></li>
+          <li>Backend: <a class="footer-link" href="https://github.com/wikipop">wikipop</a></li>
+          <li><a class="footer-link" :href="apiDocsUrl">Dokumentacja API</a></li>
+          <li><a class="footer-link" :href="`${repositoryUrl}/tree/master/backend/docs/adr`">Decyzje architektoniczne</a></li>
+        </ul>
+      </nav>
+      <p class="mt-3 text-xs">
+        Ferris: Karen Rustad Tölva, <a class="footer-link" href="https://rustacean.net/">rustacean.net</a>, domena publiczna (CC0).
+      </p>
+    </footer>
   </div>
 </template>
 
@@ -462,6 +484,17 @@ async function createEvent(): Promise<void> {
   background: var(--color-rust-dark);
 }
 
+.footer-link {
+  color: var(--color-rust-dark);
+  text-decoration: underline;
+  text-decoration-color: rgb(163 64 29 / 35%);
+  text-underline-offset: 3px;
+}
+
+.footer-link:hover {
+  text-decoration-color: currentcolor;
+}
+
 .hero-week {
   display: grid;
   grid-template-columns: 1.6rem repeat(24, minmax(0, 1fr));
@@ -492,10 +525,10 @@ async function createEvent(): Promise<void> {
 
 .hero-crab {
   position: absolute;
-  bottom: 120%;
+  bottom: 110%;
   left: 50%;
-  font-size: 1.1rem;
-  line-height: 1;
+  width: 1.75rem;
+  max-width: none;
   translate: -50% 0;
   animation: hero-crab-hop 1.4s cubic-bezier(0.3, 0, 0.4, 1) infinite;
 }
