@@ -251,7 +251,7 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
   <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_17rem]">
     <div
       ref="tableRoot"
-      class="schedule-scroll overflow-auto rounded-2xl border border-berry/15 bg-white/75"
+      class="schedule-scroll overflow-auto rounded-2xl border border-rust/15 bg-white/75"
       @pointermove="continuePaint"
       @pointerup="finishPaint"
       @pointercancel="finishPaint"
@@ -263,14 +263,14 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
       </caption>
       <thead>
         <tr>
-          <th scope="col" class="sticky top-0 left-0 z-20 w-14 border-r border-b border-berry/15 bg-paper px-1.5 py-3 text-xs text-ink-soft sm:w-16 sm:text-sm">
+          <th scope="col" class="sticky top-0 left-0 z-20 w-14 border-r border-b border-rust/15 bg-paper px-1.5 py-3 text-xs text-ink-soft sm:w-16 sm:text-sm">
             Godz.
           </th>
           <th
             v-for="day in visibleDays"
             :key="day"
             scope="col"
-            class="sticky top-0 z-10 border-b border-berry/15 bg-paper px-1 py-3 text-xs font-bold text-berry-dark sm:text-sm"
+            class="sticky top-0 z-10 border-b border-rust/15 bg-paper px-1 py-3 text-xs font-bold text-rust-dark sm:text-sm"
           >
             <span aria-hidden="true">{{ day.toUpperCase() }}</span>
             <span class="sr-only">{{ weekdayLabels[day] }}</span>
@@ -279,10 +279,10 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
       </thead>
       <tbody>
         <tr v-for="hour in visibleHours" :key="hour">
-          <th scope="row" class="sticky left-0 z-10 border-r border-b border-berry/10 bg-paper px-1 py-3 text-xs font-semibold text-ink-soft sm:text-sm">
+          <th scope="row" class="sticky left-0 z-10 border-r border-b border-rust/10 bg-paper px-1 py-3 text-xs font-semibold text-ink-soft sm:text-sm">
             {{ String(hour).padStart(2, '0') }}:00
           </th>
-          <td v-for="day in visibleDays" :key="day" class="border-r border-b border-berry/10 p-1.5 align-middle">
+          <td v-for="day in visibleDays" :key="day" class="border-r border-b border-rust/10 p-1.5 align-middle">
             <template v-for="slot in [slotAt(day, hour)]" :key="slot ?? 'empty'">
               <template v-if="slot">
                 <button
@@ -365,7 +365,7 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
                 <button
                   v-else
                   type="button"
-                  class="relative min-h-16 w-full animate-pulse rounded-xl bg-lavender/45"
+                  class="relative min-h-16 w-full animate-pulse rounded-xl bg-patina/45"
                   :aria-label="cellLabel(slot)"
                   aria-disabled="true"
                   :data-slot="slot"
@@ -385,9 +385,9 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
       </table>
     </div>
 
-    <aside v-if="inspectedSlot && reads[inspectedSlot]?.status === 'success'" class="sticky top-2 z-20 order-first rounded-2xl border border-berry/15 bg-paper p-4 text-left shadow-[0_0.75rem_2rem_rgb(92_37_67/10%)] lg:order-last lg:top-4" aria-live="polite">
+    <aside v-if="inspectedSlot && reads[inspectedSlot]?.status === 'success'" class="sticky top-2 z-20 order-first rounded-2xl border border-rust/15 bg-paper p-4 text-left shadow-[0_0.75rem_2rem_rgb(29_36_34/10%)] lg:order-last lg:top-4" aria-live="polite">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <h3 class="font-display text-xl font-bold text-berry-dark">{{ formatSlot(inspectedSlot) }}</h3>
+        <h3 class="font-display text-xl font-bold text-rust-dark">{{ formatSlot(inspectedSlot) }}</h3>
         <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700"><span class="size-2 rounded-full bg-emerald-500" /> serwis online</span>
       </div>
       <div v-if="participants.length" class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
@@ -407,7 +407,7 @@ function handleCellKeydown(event: KeyboardEvent, slot: SlotId): void {
       <p v-else class="mt-2 text-sm text-ink-soft">Nikt jeszcze nie zaznaczył żadnej dostępności.</p>
       <p class="mt-3 text-xs text-ink-soft">Lista obejmuje osoby widoczne w co najmniej jednej odpowiedzi; API nie ujawnia uczestników bez żadnego wpisu.</p>
     </aside>
-    <aside v-else class="sticky top-2 z-20 order-first rounded-2xl border border-dashed border-berry/25 bg-white/95 p-4 text-sm text-ink-soft lg:order-last lg:top-4">
+    <aside v-else class="sticky top-2 z-20 order-first rounded-2xl border border-dashed border-rust/25 bg-white/95 p-4 text-sm text-ink-soft lg:order-last lg:top-4">
       Wybierz godzinę, aby zobaczyć odpowiedzi wybranych osób.
     </aside>
   </div>

@@ -4,6 +4,14 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'pl' },
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap',
+        },
+      ],
     },
   },
   compatibilityDate: '2025-07-15',

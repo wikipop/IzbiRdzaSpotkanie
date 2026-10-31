@@ -86,7 +86,7 @@ const canRequestComparison = computed(() => Boolean(
   && Object.keys(schedule.writeStates).length === 0,
 ))
 
-useHead(() => ({ title: event.value ? `${event.value.name} — Izbi Rdza Spotkanie` : 'Spotkanie — Izbi Rdza Spotkanie' }))
+useHead(() => ({ title: event.value ? `${event.value.name} — Izbi Rdza Meet` : 'Spotkanie — Izbi Rdza Meet' }))
 
 function userMessage(error: ApiFailure): string {
   if (error.kind === 'api') {
@@ -384,30 +384,30 @@ else failInitialEventLoad()
 <template>
   <div class="min-h-screen px-3 py-6 sm:px-5 sm:py-8 lg:px-8">
     <main id="main-content" class="mx-auto w-full max-w-[96rem]">
-      <NuxtLink to="/" class="inline-flex min-h-11 items-center font-bold text-berry-dark underline decoration-sakura decoration-2 underline-offset-4">
+      <NuxtLink to="/" class="inline-flex min-h-11 items-center font-bold text-rust-dark underline decoration-ember decoration-2 underline-offset-4">
         ← Nowe spotkanie
       </NuxtLink>
 
       <section v-if="loadState === 'loading'" class="paper-card mt-8 p-8" aria-live="polite">
-        <p class="font-display text-2xl text-berry-dark">Otwieram notes spotkania…</p>
+        <p class="font-display text-2xl text-rust-dark">Otwieram notes spotkania…</p>
       </section>
 
       <section v-else-if="loadState === 'not-found'" class="paper-card mt-8 p-8 text-center">
         <p class="text-5xl" aria-hidden="true">✉️</p>
-        <h1 class="mt-4 font-display text-4xl font-bold text-berry-dark">Nie znaleźliśmy tego spotkania</h1>
+        <h1 class="mt-4 font-display text-4xl font-bold text-rust-dark">Nie znaleźliśmy tego spotkania</h1>
         <p class="mt-3 text-ink-soft">Sprawdź link albo utwórz nowy plan.</p>
         <NuxtLink class="button-primary mt-6" to="/">Utwórz spotkanie</NuxtLink>
       </section>
 
       <section v-else-if="loadState === 'invalid-link'" class="paper-card mt-8 p-8 text-center">
         <p class="text-5xl" aria-hidden="true">✂️</p>
-        <h1 class="mt-4 font-display text-4xl font-bold text-berry-dark">Ten link jest niepełny</h1>
+        <h1 class="mt-4 font-display text-4xl font-bold text-rust-dark">Ten link jest niepełny</h1>
         <p class="mt-3 text-ink-soft">Poproś o ponowne przesłanie całego adresu spotkania.</p>
         <NuxtLink class="button-primary mt-6" to="/">Utwórz nowe spotkanie</NuxtLink>
       </section>
 
       <section v-else-if="loadState === 'failed'" class="paper-card mt-8 p-8 text-center">
-        <h1 class="font-display text-4xl font-bold text-berry-dark">Nie udało się otworzyć spotkania</h1>
+        <h1 class="font-display text-4xl font-bold text-rust-dark">Nie udało się otworzyć spotkania</h1>
         <p role="alert" class="error-text mt-3">{{ loadError }}</p>
         <button class="button-primary mt-6" type="button" @click="loadEvent">Spróbuj ponownie</button>
       </section>
@@ -415,8 +415,8 @@ else failInitialEventLoad()
       <template v-else-if="event">
         <header class="mt-6 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <p class="text-sm font-bold tracking-widest text-berry uppercase">Wspólny notes</p>
-            <h1 class="mt-2 font-display text-4xl font-bold text-berry-dark sm:text-6xl">{{ event.name }}</h1>
+            <p class="text-sm font-bold tracking-widest text-rust uppercase">Wspólny notes</p>
+            <h1 class="mt-2 font-display text-4xl font-bold text-rust-dark sm:text-6xl">{{ event.name }}</h1>
             <p class="mt-3 text-sm text-ink-soft">
               {{ event.slots.length }} niezależnych usług godzinowych ·
               <strong class="text-emerald-700">{{ schedule.successfulCount }} online</strong>
@@ -432,13 +432,13 @@ else failInitialEventLoad()
         <section class="paper-card mt-6 min-w-0 p-3 sm:p-5 lg:p-6" aria-labelledby="schedule-title">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p class="text-sm font-bold tracking-wide text-berry uppercase">Plan grupy</p>
-              <h2 id="schedule-title" ref="scheduleFocusTarget" tabindex="-1" class="mt-1 font-display text-3xl font-bold text-berry-dark">Dostępność</h2>
+              <p class="text-sm font-bold tracking-wide text-rust uppercase">Plan grupy</p>
+              <h2 id="schedule-title" ref="scheduleFocusTarget" tabindex="-1" class="mt-1 font-display text-3xl font-bold text-rust-dark">Dostępność</h2>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-              <div v-if="session" class="inline-flex min-h-11 items-center gap-3 rounded-full border border-berry/15 bg-white px-4 text-sm shadow-sm">
+              <div v-if="session" class="inline-flex min-h-11 items-center gap-3 rounded-full border border-rust/15 bg-white px-4 text-sm shadow-sm">
                 <span>Edytujesz jako <strong>{{ session.nick }}</strong></span>
-                <button type="button" class="font-bold text-berry-dark underline underline-offset-2" @click="forgetSession">Wyjdź</button>
+                <button type="button" class="font-bold text-rust-dark underline underline-offset-2" @click="forgetSession">Wyjdź</button>
               </div>
               <button v-else class="button-primary" type="button" @click="openJoinDialog">Dodaj swoją dostępność</button>
               <button class="button-secondary" type="button" :disabled="schedule.isLoading" @click="schedule.refreshAll">
@@ -450,7 +450,7 @@ else failInitialEventLoad()
           <p v-if="sessionNotice" class="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-ink" role="status">{{ sessionNotice }}</p>
           <div v-if="session && (sessionExpiry.status === 'expired' || sessionExpiry.status === 'expiring')" class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-ink" role="status">
             <p>{{ sessionExpiry.status === 'expired' ? 'Ta sesja prawdopodobnie wygasła. Serwer potwierdzi to przy zapisie.' : 'Ta sesja wygaśnie w ciągu 24 godzin.' }}</p>
-            <button type="button" class="font-bold text-berry-dark underline underline-offset-2" @click="openJoinDialog">Dołącz ponownie</button>
+            <button type="button" class="font-bold text-rust-dark underline underline-offset-2" @click="openJoinDialog">Dołącz ponownie</button>
           </div>
 
           <div
@@ -469,20 +469,20 @@ else failInitialEventLoad()
             <span class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-sm">
               mniej osób <span class="availability-gradient h-3 w-20 rounded-full" aria-hidden="true" /> więcej osób
             </span>
-            <span class="rounded-full bg-lavender/60 px-3 py-1.5">„może” = połowa nasycenia</span>
+            <span class="rounded-full bg-patina/60 px-3 py-1.5">„może” = połowa nasycenia</span>
             <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5"><span class="size-2 rounded-full bg-emerald-500" /> serwis online</span>
             <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5"><span class="size-2 rounded-full bg-red-500" /> błąd odczytu</span>
             <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5"><span class="size-2 animate-pulse rounded-full bg-amber-400" /> sprawdzanie</span>
           </div>
           <p class="mt-2 text-xs text-ink-soft">Każda godzina jest osobnym serwisem. Kropka pokazuje wynik ostatniej próby odczytu, nie monitoring na żywo.</p>
 
-          <fieldset v-if="selectableParticipants.length" class="mt-5 rounded-2xl border border-berry/15 bg-white/65 p-3">
-            <legend class="px-2 text-sm font-bold text-berry-dark">Czyje plany porównujemy?</legend>
+          <fieldset v-if="selectableParticipants.length" class="mt-5 rounded-2xl border border-rust/15 bg-white/65 p-3">
+            <legend class="px-2 text-sm font-bold text-rust-dark">Czyje plany porównujemy?</legend>
             <div class="flex flex-wrap gap-2">
               <button
                 type="button"
                 class="min-h-11 rounded-full border px-4 py-2 text-sm font-bold transition"
-                :class="participantFilterIds.length === 0 ? 'border-berry bg-berry text-white' : 'border-berry/20 bg-white text-ink'"
+                :class="participantFilterIds.length === 0 ? 'border-rust bg-rust text-white' : 'border-rust/20 bg-white text-ink'"
                 :aria-pressed="participantFilterIds.length === 0"
                 @click="selectAllParticipants"
               >
@@ -493,7 +493,7 @@ else failInitialEventLoad()
                 :key="participant.userId"
                 type="button"
                 class="min-h-11 rounded-full border px-4 py-2 text-sm font-bold transition"
-                :class="participantIsSelected(participant.userId) ? 'border-berry-dark bg-blush text-berry-dark' : 'border-berry/15 bg-white text-ink-soft'"
+                :class="participantIsSelected(participant.userId) ? 'border-rust-dark bg-flake text-rust-dark' : 'border-rust/15 bg-white text-ink-soft'"
                 :aria-pressed="participantIsSelected(participant.userId)"
                 @click="toggleParticipant(participant.userId)"
               >
@@ -526,10 +526,10 @@ else failInitialEventLoad()
           <form class="p-6 sm:p-8" novalidate @submit.prevent="join">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <p class="text-sm font-bold tracking-wide text-berry uppercase">Dodaj dostępność</p>
-                <h2 id="join-title" class="mt-1 font-display text-3xl font-bold text-berry-dark">Jak mamy Cię podpisać?</h2>
+                <p class="text-sm font-bold tracking-wide text-rust uppercase">Dodaj dostępność</p>
+                <h2 id="join-title" class="mt-1 font-display text-3xl font-bold text-rust-dark">Jak mamy Cię podpisać?</h2>
               </div>
-              <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full border border-berry/20 bg-white text-xl" aria-label="Zamknij" @click="joinDialog?.close()">×</button>
+              <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full border border-rust/20 bg-white text-xl" aria-label="Zamknij" @click="joinDialog?.close()">×</button>
             </div>
 
             <p v-if="reauthNotice" class="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-ink" role="alert">

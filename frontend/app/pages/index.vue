@@ -5,7 +5,7 @@ import type { ApiFailure } from '~/services/api/result'
 import { weekdays, type SlotId, type Weekday } from '~/types/api/contracts'
 
 useHead({
-  title: 'Izbi Rdza Spotkanie — znajdź wspólną godzinę',
+  title: 'Izbi Rdza Meet — znajdź wspólną godzinę',
   meta: [{ name: 'description', content: 'Zaplanuj spotkanie i znajdź godzinę pasującą całej grupie.' }],
 })
 
@@ -20,6 +20,20 @@ const explicitActiveSlot = ref<SlotId>('pn-00')
 const errors = ref<ValidationErrors>({})
 const submitError = ref('')
 const pending = ref(false)
+
+// A sample week for the hero: warmer evenings on weekdays, daytime at weekends,
+// and one hour that suits everybody.
+const sharedHour = { day: 'pt', hour: 19 } as const
+const heroWeek = weekdays.map(day => ({
+  day,
+  hours: Array.from({ length: 24 }, (_, hour) => {
+    if (day === sharedHour.day && hour === sharedHour.hour) return 'shared'
+    const weekend = day === 'sb' || day === 'nd'
+    const busy = weekend ? hour >= 11 && hour <= 21 : hour >= 17 && hour <= 22
+    if (hour < 8) return 0
+    return busy ? 2 + ((hour + day.charCodeAt(0)) % 3) : (hour + day.charCodeAt(1)) % 4 === 0 ? 1 : 0
+  }),
+}))
 
 const hourOptions = Array.from({ length: 25 }, (_, hour) => ({
   value: hour,
@@ -135,22 +149,38 @@ async function createEvent(): Promise<void> {
 <template>
   <div class="min-h-screen px-4 py-8 sm:px-8 sm:py-14">
     <main id="main-content" class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-      <section aria-labelledby="page-title" class="py-4">
-        <p class="mb-4 inline-flex rounded-full bg-blush px-4 py-2 text-sm font-bold tracking-wide text-berry-dark">
-          ✦ Znajdź wspólną godzinę
+      <section aria-labelledby="page-title" class="min-w-0 py-2">
+        <p class="font-display text-lg font-extrabold text-rust-dark">
+          Izbi Rdza Meet
         </p>
-        <h1 id="page-title" class="max-w-xl font-display text-5xl leading-[1.05] font-bold text-berry-dark sm:text-7xl">
+        <h1 id="page-title" class="mt-10 max-w-xl font-display text-5xl leading-[0.98] font-extrabold tracking-[-0.03em] text-ink sm:text-7xl">
           Kiedy się widzimy?
         </h1>
-        <p class="mt-6 max-w-xl text-lg leading-8 text-ink-soft">
-          Wybierz dni i godziny, a potem podeślij znajomym link.
+        <p class="mt-5 max-w-md text-lg leading-8 text-ink-soft">
+          Zaznacz dni i godziny, wyślij znajomym link, a mapa pokaże, kiedy pasuje wszystkim.
         </p>
-        <p class="mt-8 text-sm font-semibold text-ink-soft">Bez konta i zbędnego kombinowania.</p>
+
+        <figure class="mt-10 max-w-md">
+          <div class="hero-week" aria-hidden="true">
+            <template v-for="row in heroWeek" :key="row.day">
+              <span class="hero-week-day">{{ row.day }}</span>
+              <span
+                v-for="(level, hour) in row.hours"
+                :key="hour"
+                class="hero-week-cell"
+                :class="level === 'shared' ? 'is-shared' : `is-${level}`"
+              />
+            </template>
+          </div>
+          <figcaption class="mt-4 text-sm leading-6 text-ink-soft">
+            Tydzień ma 168 godzin i każdą obsługuje osobny serwis.
+            <span class="font-semibold text-verdigris">Zielone pole</span> to godzina, która pasuje całej grupie.
+          </figcaption>
+        </figure>
       </section>
 
       <section class="paper-card relative overflow-hidden p-5 sm:p-8" aria-labelledby="form-title">
-        <div class="absolute -top-3 right-8 h-10 w-28 rotate-2 bg-sakura/45" aria-hidden="true" />
-        <h2 id="form-title" class="font-display text-3xl font-bold text-berry-dark">Nowe spotkanie</h2>
+        <h2 id="form-title" class="font-display text-3xl font-bold text-rust-dark">Nowe spotkanie</h2>
         <p class="mt-2 text-ink-soft">Ustal, jakie terminy bierzecie pod uwagę.</p>
 
         <form class="mt-7 space-y-7" novalidate @submit.prevent="createEvent">
@@ -171,11 +201,11 @@ async function createEvent(): Promise<void> {
 
           <fieldset>
             <legend class="font-bold">Sposób wyboru terminów</legend>
-            <div class="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-blush/60 p-1.5">
-              <button type="button" class="min-h-11 rounded-xl px-3 py-2 text-sm font-bold" :class="createMode === 'range' ? 'bg-white text-berry-dark shadow-sm' : 'text-ink-soft'" :aria-pressed="createMode === 'range'" @click="setCreateMode('range')">
+            <div class="mt-3 grid grid-cols-2 gap-2 rounded-2xl bg-flake/60 p-1.5">
+              <button type="button" class="min-h-11 rounded-xl px-3 py-2 text-sm font-bold" :class="createMode === 'range' ? 'bg-white text-rust-dark shadow-sm' : 'text-ink-soft'" :aria-pressed="createMode === 'range'" @click="setCreateMode('range')">
                 Zakres godzin
               </button>
-              <button type="button" class="min-h-11 rounded-xl px-3 py-2 text-sm font-bold" :class="createMode === 'slots' ? 'bg-white text-berry-dark shadow-sm' : 'text-ink-soft'" :aria-pressed="createMode === 'slots'" @click="setCreateMode('slots')">
+              <button type="button" class="min-h-11 rounded-xl px-3 py-2 text-sm font-bold" :class="createMode === 'slots' ? 'bg-white text-rust-dark shadow-sm' : 'text-ink-soft'" :aria-pressed="createMode === 'slots'" @click="setCreateMode('slots')">
                 Konkretne godziny
               </button>
             </div>
@@ -191,8 +221,8 @@ async function createEvent(): Promise<void> {
                 type="button"
                 class="min-h-11 rounded-xl border px-2 py-2 text-sm font-bold transition"
                 :class="selectedDays.includes(day)
-                  ? 'border-berry-dark bg-berry text-white shadow-sm'
-                  : 'border-berry/20 bg-white text-ink hover:border-berry'"
+                  ? 'border-rust-dark bg-rust text-white shadow-sm'
+                  : 'border-rust/20 bg-white text-ink hover:border-rust'"
                 :aria-pressed="selectedDays.includes(day)"
                 @click="toggleDay(day)"
               >
@@ -213,7 +243,7 @@ async function createEvent(): Promise<void> {
                   <option v-for="hour in hourOptions.slice(0, 24)" :key="hour.value" :value="hour.value">{{ hour.label }}</option>
                 </select>
               </div>
-              <span aria-hidden="true" class="font-display text-xl text-berry">→</span>
+              <span aria-hidden="true" class="font-display text-xl text-rust">→</span>
               <div>
                 <label class="sr-only" for="to-hour">Do godziny, wyłącznie</label>
                 <select id="to-hour" v-model.number="to" class="field" :aria-invalid="Boolean(errors.hours)" :aria-describedby="errors.hours ? 'event-hours-error' : 'event-hours-hint'">
@@ -227,11 +257,11 @@ async function createEvent(): Promise<void> {
           <fieldset v-else :aria-describedby="errors.slots ? 'event-slots-error event-slots-hint' : 'event-slots-hint'">
             <legend class="font-bold">Konkretne godziny</legend>
             <p id="event-slots-hint" class="mt-1 text-sm text-ink-soft">Wybierz dowolne godziny. Nie muszą tworzyć ciągłego zakresu. Po siatce poruszaj się strzałkami, a Home i End przechodzą na początek lub koniec dnia.</p>
-            <div class="mt-3 max-h-[28rem] space-y-3 overflow-y-auto rounded-2xl border border-berry/15 bg-white/70 p-3">
+            <div class="mt-3 max-h-[28rem] space-y-3 overflow-y-auto rounded-2xl border border-rust/15 bg-white/70 p-3">
               <section v-for="day in weekdays" :key="day" :aria-labelledby="`explicit-${day}`">
                 <div class="flex items-center justify-between gap-3">
-                  <h3 :id="`explicit-${day}`" class="font-bold text-berry-dark">{{ weekdayLabels[day] }}</h3>
-                  <button type="button" class="min-h-11 px-2 text-xs font-bold text-berry-dark underline underline-offset-2" :aria-label="`${Array.from({ length: 24 }, (_, hour) => slotId(day, hour)).every(slot => selectedSlots.includes(slot)) ? 'Wyczyść' : 'Wybierz'} cały dzień: ${weekdayLabels[day]}`" @click="toggleWholeDay(day)">
+                  <h3 :id="`explicit-${day}`" class="font-bold text-rust-dark">{{ weekdayLabels[day] }}</h3>
+                  <button type="button" class="min-h-11 px-2 text-xs font-bold text-rust-dark underline underline-offset-2" :aria-label="`${Array.from({ length: 24 }, (_, hour) => slotId(day, hour)).every(slot => selectedSlots.includes(slot)) ? 'Wyczyść' : 'Wybierz'} cały dzień: ${weekdayLabels[day]}`" @click="toggleWholeDay(day)">
                     {{ Array.from({ length: 24 }, (_, hour) => slotId(day, hour)).every(slot => selectedSlots.includes(slot)) ? 'Wyczyść dzień' : 'Cały dzień' }}
                   </button>
                 </div>
@@ -242,7 +272,7 @@ async function createEvent(): Promise<void> {
                     :key="hour"
                     type="button"
                     class="min-h-11 rounded-lg border px-1 text-xs font-bold"
-                    :class="selectedSlots.includes(slotId(day, hour - 1)) ? 'border-berry-dark bg-berry text-white' : 'border-berry/15 bg-white text-ink'"
+                    :class="selectedSlots.includes(slotId(day, hour - 1)) ? 'border-rust-dark bg-rust text-white' : 'border-rust/15 bg-white text-ink'"
                     :aria-pressed="selectedSlots.includes(slotId(day, hour - 1))"
                     :tabindex="explicitTabIndex(slotId(day, hour - 1))"
                     @focus="explicitActiveSlot = slotId(day, hour - 1)"
@@ -270,3 +300,41 @@ async function createEvent(): Promise<void> {
     </main>
   </div>
 </template>
+
+<style scoped>
+.hero-week {
+  display: grid;
+  grid-template-columns: 1.6rem repeat(24, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.hero-week-day {
+  align-self: center;
+  color: var(--color-ink-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.hero-week-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--color-steel);
+}
+
+.hero-week-cell.is-1 { background: #ebb89c; }
+.hero-week-cell.is-2 { background: #d07a52; }
+.hero-week-cell.is-3 { background: var(--color-rust); }
+.hero-week-cell.is-4 { background: var(--color-rust-dark); }
+
+.hero-week-cell.is-shared {
+  background: var(--color-verdigris);
+  box-shadow: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-verdigris);
+  animation: shared-pulse 2.4s ease-in-out 1s 2;
+}
+
+@keyframes shared-pulse {
+  50% {
+    box-shadow: 0 0 0 2px var(--color-paper), 0 0 0 7px rgb(44 122 111 / 35%);
+  }
+}
+</style>
