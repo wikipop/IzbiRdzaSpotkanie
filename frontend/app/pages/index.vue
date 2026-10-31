@@ -228,7 +228,7 @@ async function createEvent(): Promise<void> {
 
 <template>
   <div class="min-h-screen px-4 py-8 sm:px-8 sm:py-14">
-    <main id="main-content" class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+    <main id="main-content" class="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
       <section aria-labelledby="page-title" class="min-w-0 py-2">
         <p class="wordmark inline-flex items-center gap-2 font-display text-lg font-extrabold text-rust-dark">
           <img src="/assets/ferris/ferris.svg" alt="" class="wordmark-crab h-6 w-auto"> Izbi Rdza Meet
